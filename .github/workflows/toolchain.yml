@@ -17,15 +17,6 @@ jobs:
       - uses: actions/checkout@v3
         with:
           path: rsb
-      - name: Cache build
-        # This is to avoid rebuilding all tools while testing github actions
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            rsb
-            /opt/rtems
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('rsb/[!.]**/*') }}
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -33,7 +24,6 @@ jobs:
             build-essential \
             ninja-build
       - name: Build qemu
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd rsb/rtems
           ../source-builder/sb-set-builder \
@@ -86,15 +76,6 @@ jobs:
           path: rtems
           ref: ci
           repository: embedded-brains/rtems
-      - name: Cache build
-        # This is to avoid rebuilding all tools while testing github actions
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            rsb
-            /opt/rtems
-          key: ${{ runner.os }}-${{ matrix.target }}-${{ hashFiles('rsb/[!.]**/*') }}
       - name: Install dependencies
         run: |
           sudo apt-get update
@@ -113,7 +94,6 @@ jobs:
             libpython3-dev \
             python3-dev
       - name: Build toolchain
-        if: steps.cache.outputs.cache-hit != 'true'
         run: |
           cd rsb/rtems
           ../source-builder/sb-set-builder \
