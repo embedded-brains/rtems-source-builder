@@ -11,7 +11,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  qemu:
+  devel:
+    strategy:
+      fail-fast: false
+      matrix:
+        tool:
+          - autotools-base
+          - autotools
+          - capstone
+          - dtc
+          - gnu-default-tools
+          - libtool
+          - libusb
+          - or1ksim
+          - qemu-couverture
+          - qemu-xilinx
+          - qemu
+          - sis
+          - spike
+          - swig
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -23,24 +41,24 @@ jobs:
           sudo apt-get install \
             build-essential \
             ninja-build
-      - name: Build qemu
+      - name: Build ${{ matrix.tool }}
         run: |
           cd rsb/rtems
           ../source-builder/sb-set-builder \
-            --log=l-qemu \
+            --log=l-${{ matrix.tool }} \
             --prefix=/opt/rtems/6 \
             --bset-tar-file \
-            devel/qemu
+            devel/${{ matrix.tool }}
       - name: Archive log on failure
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: log-qemu
-          path: rsb/rtems/l-qemu
+          name: log-${{ matrix.tool }}
+          path: rsb/rtems/l-${{ matrix.tool }}
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: devel-qemu
+          name: devel-${{ matrix.tool }}
           path: rsb/rtems/tar/*.tar*
 
   build:
@@ -120,9 +138,11 @@ jobs:
       #    prefix: /opt/rtems/6
 
   simulator:
+    # run even if not all of the earlier matrix builds worked
+    if: ${{ always() }}
     needs:
       - build
-      - qemu
+      - devel
     strategy:
       fail-fast: false
       matrix:
