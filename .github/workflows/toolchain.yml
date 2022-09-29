@@ -54,7 +54,9 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: log-${{ matrix.tool }}
-          path: rsb/rtems/l-${{ matrix.tool }}
+          path: |
+            rsb/rtems/l-${{ matrix.tool }}
+            rsb/**/rsb-report-*.txt
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
