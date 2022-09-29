@@ -40,7 +40,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install \
             build-essential \
-            ninja-build
+            ninja-build \
+            libudev-dev
       - name: Build ${{ matrix.tool }}
         run: |
           cd rsb/rtems
