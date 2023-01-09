@@ -55,6 +55,10 @@ def generate(name, opts, header = None, footer = None):
             with open(name, 'w') as l:
                 l.write(os.linesep.join(r))
             log.notice('  See error report: %s' % (name))
+            log.notice('  (Hint: The first error may be in front of a '
+                'line containing\n'
+                '  "Error 1" [GNU make] and may be only in the whole log '
+                '["--log" option].)')
         except:
             log.stderr('error: failure to create error report')
             raise
