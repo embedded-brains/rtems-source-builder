@@ -30,23 +30,37 @@ jobs:
           - sis
           - spike
           - swig
-    runs-on: ubuntu-latest
+        os:
+          - ubuntu-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
         with:
           path: rsb
-      - name: Install dependencies
+      - name: Install dependencies for Ubuntu
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
           sudo apt-get install \
             build-essential \
             ninja-build \
             libudev-dev
+      - name: Install dependencies for macOS
+        if: ${{ matrix.os == 'macOS-latest' }}
+        run: |
+          brew install python
+          brew install autoconf automake libtool pkg-config ninja
+      - name: Create writeable prefix for macOS
+        if: ${{ matrix.os == 'macOS-latest' }}
+        run: |
+          sudo mkdir -p /opt/rtems
+          sudo chmod 777 /opt/rtems
       - name: Build ${{ matrix.tool }}
         run: |
           cd rsb/rtems
           ../source-builder/sb-set-builder \
-            --log=l-${{ matrix.tool }} \
+            --log=l-${{ matrix.tool }}-${{ matrix.os }} \
             --prefix=/opt/rtems/6 \
             --bset-tar-file \
             devel/${{ matrix.tool }}
@@ -54,14 +68,14 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: log-${{ matrix.tool }}
+          name: log-${{ matrix.tool }}-${{ matrix.os }}
           path: |
-            rsb/rtems/l-${{ matrix.tool }}
+            rsb/rtems/l-${{ matrix.tool }}-${{ matrix.os }}
             rsb/**/rsb-report-*.txt
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: devel-${{ matrix.tool }}
+          name: devel-${{ matrix.tool }}-${{ matrix.os }}
           path: rsb/rtems/tar/*.tar*
 
   build:
@@ -87,7 +101,10 @@ jobs:
           - sparc64
           - v850
           - x86_64
-    runs-on: ubuntu-latest
+        os:
+          - ubuntu-latest
+          - macOS-latest
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -97,7 +114,8 @@ jobs:
           path: rtems
           ref: ci
           repository: embedded-brains/rtems
-      - name: Install dependencies
+      - name: Install dependencies for Ubuntu
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           sudo apt-get update
           sudo apt-get install \
@@ -114,11 +132,21 @@ jobs:
             python-is-python3 \
             libpython3-dev \
             python3-dev
+      - name: Install dependencies for macOS
+        if: ${{ matrix.os == 'macOS-latest' }}
+        run: |
+          brew install python
+          brew install autoconf automake libtool pkg-config
+      - name: Create writeable prefix for macOS
+        if: ${{ matrix.os == 'macOS-latest' }}
+        run: |
+          sudo mkdir -p /opt/rtems
+          sudo chmod 777 /opt/rtems
       - name: Build toolchain
         run: |
           cd rsb/rtems
           ../source-builder/sb-set-builder \
-            --log=l-${{ matrix.target }} \
+            --log=l-${{ matrix.target }}-${{ matrix.os }} \
             --prefix=/opt/rtems/6 \
             --bset-tar-file \
             6/rtems-${{ matrix.target }}
@@ -126,12 +154,12 @@ jobs:
         if: ${{ failure() }}
         uses: actions/upload-artifact@v3
         with:
-          name: log-${{ matrix.target }}
-          path: rsb/rtems/l-${{ matrix.target }}
+          name: log-${{ matrix.target }}-${{ matrix.os }}
+          path: rsb/rtems/l-${{ matrix.target }}-${{ matrix.os }}
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: tools-${{ matrix.target }}
+          name: tools-${{ matrix.target }}-${{ matrix.os }}
           path: rsb/rtems/tar/*.tar*
       #- name: Build BSPs
       #  uses: ./rtems/.github/actions/build-bsps
