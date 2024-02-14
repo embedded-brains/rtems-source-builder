@@ -142,6 +142,23 @@ jobs:
         run: |
           sudo mkdir -p /opt/rtems
           sudo chmod 777 /opt/rtems
+      - name: Download sources
+        run: |
+          cd rsb/rtems
+          # Multiple tries to download the sources. Sometimes it doesn't work
+          # the first time.
+          ../source-builder/sb-set-builder \
+            --source-only-download \
+            --log=l-${{ matrix.target }}-${{ matrix.os }} \
+            --prefix=/opt/rtems/6 \
+            --bset-tar-file \
+            6/rtems-${{ matrix.target }} || true
+          ../source-builder/sb-set-builder \
+            --source-only-download \
+            --log=l-${{ matrix.target }}-${{ matrix.os }} \
+            --prefix=/opt/rtems/6 \
+            --bset-tar-file \
+            6/rtems-${{ matrix.target }} || true
       - name: Build toolchain
         run: |
           cd rsb/rtems
